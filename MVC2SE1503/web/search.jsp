@@ -47,8 +47,8 @@
                             <%
                             int count = 0;
                             for (TblDemoDTO dto : result) {
-                                String urlRewriting = "/DispatchServlet"
-                                            + "?btnAction=sa"
+                                String urlRewriting = "DispatchServlet"
+                                            + "?btnAction=Delete"
                                             + "&pk=" + dto.getUsername()
                                             + "&lastSearchValue="
                                             + searchValue;
@@ -67,7 +67,7 @@
                                         <%= dto.getFullname() %>
                                     </td>
                                     <td>
-                                        <%= dto.isRole() == true ? "is Admin" : "is not Admin" %>
+                                        <%= dto.isRole() %>
                                     </td>
                                     <td>
                                         <a href="<%= urlRewriting %>">Delete</a>

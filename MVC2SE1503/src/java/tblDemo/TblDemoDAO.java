@@ -126,7 +126,7 @@ public class TblDemoDAO implements Serializable {
             //1. Connect DB.
             con = DBHelper.makeConnection();
             //2. Create SQL String.
-            String sql = "Delete From TblDemoDAO "
+            String sql = "Delete From TblDemo "
                         + "Where username = ?";
             //3.1. Create Statement & assign value to parameter.
             stm = con.prepareStatement(sql);

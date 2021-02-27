@@ -47,9 +47,9 @@ public class DeleteAccountServlet extends HttpServlet {
             
             if (result) {
                 //call Search function again
-                url = "/DispatchServlet"
-                            + "?btnAction=Search"
-                            + "&txtSearchValue=" + searchValue;
+                url = "DispatchServlet"
+                      + "?btnAction=Search"
+                      + "&txtSearchValue=" + searchValue;
             }//end if delete is successfull
         } catch (SQLException | NamingException ex) {
             ex.printStackTrace();
