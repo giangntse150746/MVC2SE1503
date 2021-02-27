@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import javax.naming.NamingException;
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -20,9 +21,10 @@ import tblDemo.TblDemoDAO;
  *
  * @author Admin
  */
-@WebServlet(name = "DeleteAccountServlet", urlPatterns = {"/DeleteAccountServlet"})
-public class DeleteAccountServlet extends HttpServlet {
+@WebServlet(name = "UpdateAccountServlet", urlPatterns = {"/UpdateAccountServlet"})
+public class UpdateAccountServlet extends HttpServlet {
     private final String ERROR_PAGE = "errors.html";
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -37,31 +39,31 @@ public class DeleteAccountServlet extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         
-        String username = request.getParameter("pk");
+        
+        String username = request.getParameter("txtUsername");
+        String password = request.getParameter("txtPassword");
+        String role = request.getParameter("checkAdmin");
         String searchValue = request.getParameter("lastSearchValue");
         String url = ERROR_PAGE;
         
         try {
             TblDemoDAO dao = new TblDemoDAO();
-            boolean result = dao.deleteAccount(username);
-            
+            boolean result = dao.updateAccount(username, password, role);
             if (result) {
                 //call Search function again
                 url = "DispatchServlet"
                       + "?btnAction=Search"
                       + "&txtSearchValue=" + searchValue;
-            }//end if delete is successful
+            }//end if update is successful
         } catch (SQLException | NamingException ex) {
             ex.printStackTrace();
         } finally {
-            // nếu dùng dispatcher sẽ trùng tên parameter truyền về -> tạo mảng
-            //ko theo thứ tự nên không biết server sẽ lấy cái nào
-            //>>>Không dùng dispatcher cho trường hợp này
             response.sendRedirect(url);
+            
             out.close();
         }
     }
-    
+
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.

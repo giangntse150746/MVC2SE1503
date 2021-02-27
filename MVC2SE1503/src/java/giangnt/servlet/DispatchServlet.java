@@ -25,6 +25,7 @@ public class DispatchServlet extends HttpServlet {
     private final String LOGIN_CONTROLLER = "/LoginServlet";
     private final String SEARCH_CONTROLLER = "/SearchLastnameServlet";
     private final String DELETE_ACCOUNT_CONTROLLER = "/DeleteAccountServlet";
+    private final String UPDATE_ACCOUNT_CONTROLLER = "/UpdateAccountServlet";
     
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -52,6 +53,8 @@ public class DispatchServlet extends HttpServlet {
                 url = SEARCH_CONTROLLER;
             } else if (button.equals("Delete")) {
                 url = DELETE_ACCOUNT_CONTROLLER;
+            } else if (button.equals("Update")) {
+                url = UPDATE_ACCOUNT_CONTROLLER;
             }
         }
         finally {

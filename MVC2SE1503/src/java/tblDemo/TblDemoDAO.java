@@ -146,5 +146,42 @@ public class TblDemoDAO implements Serializable {
         }
         return false;
     }
+    
+    public boolean updateAccount(String username, String password, String role)
+                throws NamingException, SQLException {
+        Connection con = null;
+        PreparedStatement stm = null;
+        boolean isAdmin;
+        try {
+            //1. Connect DB.
+            con = DBHelper.makeConnection();
+            //2. Create SQL String.
+            String sql = "Update TblDemo "
+                        + "Set password = ?, isAdmin = ? "
+                        + "Where username = ?";
+            //3. Create Statement & assign value to parameter.
+            stm = con.prepareStatement(sql);
+            stm.setString(1, password);
+            if (role != null)
+                isAdmin = role.equals("ON");
+            else
+                isAdmin = false;
+            stm.setBoolean(2, isAdmin);
+            stm.setString(3, username);
+            //4. Execute Query.
+            int row = stm.executeUpdate();
+            //5. Process Result.
+            if (row > 0) {
+                return true;
+            }
+        }
+        finally {
+            if (stm != null)
+                stm.close();
+            if (con != null)
+                con.close();
+        }
+        return false;
+    }
 
 }

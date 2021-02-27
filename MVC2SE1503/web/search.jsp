@@ -26,65 +26,84 @@
         </div>
         <!--make a scripting element area-->
         <%
-            String searchValue = request.getParameter("txtSearchValue");
-            if (searchValue != null) {
-                List<TblDemoDTO> result = 
-                            (List<TblDemoDTO>)request.getAttribute("SEARCH_RESULT");
-                if (result != null) {
-                    %>
-                    <table border="1">
-                        <thead>
-                            <tr>
-                                <th>No.</th>
-                                <th>Username</th>
-                                <th>Password</th>
-                                <th>Full Name</th>
-                                <th>Role</th>
-                                <th>Delete</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <%
-                            int count = 0;
-                            for (TblDemoDTO dto : result) {
-                                String urlRewriting = "DispatchServlet"
-                                            + "?btnAction=Delete"
-                                            + "&pk=" + dto.getUsername()
-                                            + "&lastSearchValue="
-                                            + searchValue;
-                                %>
-                                <tr>
-                                    <td>
-                                        <%= ++count %>
-                                    </td>
-                                    <td>
-                                        <%= dto.getUsername() %>
-                                    </td>
-                                    <td>
-                                        <%= dto.getPassword() %>
-                                    </td>
-                                    <td>
-                                        <%= dto.getFullname() %>
-                                    </td>
-                                    <td>
-                                        <%= dto.isRole() %>
-                                    </td>
-                                    <td>
-                                        <a href="<%= urlRewriting %>">Delete</a>
-                                    </td>
-                                </tr>
-                                <%
-                            }
+        String searchValue = request.getParameter("txtSearchValue");
+        if (searchValue != null) {
+            List<TblDemoDTO> result = 
+                        (List<TblDemoDTO>)request.getAttribute("SEARCH_RESULT");
+            if (result != null) {
+                %>
+                <table border="1">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Username</th>
+                            <th>Password</th>
+                            <th>Full Name</th>
+                            <th>Role</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <%
+                        int count = 0;
+                        for (TblDemoDTO dto : result) {
+                            String urlRewriting = "DispatchServlet"
+                                        + "?btnAction=Delete"
+                                        + "&pk=" + dto.getUsername()
+                                        + "&lastSearchValue="
+                                        + searchValue;
                             %>
-                        </tbody>
-                    </table>
-                <%
-                } else {
-                    %>
-                    <h1>No Record Found!!!</h1>
+                    <form action="DispatchServlet" method="POST">
+                            <tr>
+                                <td>
+                                    <%= ++count %>
+                                </td>
+                                <td>
+                                    <%= dto.getUsername() %>
+                                    <input type="hidden" name="txtUsername" 
+                                           value="<%= dto.getUsername() %>" />
+                                </td>
+                                <td>
+                                    <input type="text" name="txtPassword" 
+                                           value="<%= dto.getPassword() %>" />
+                                </td>
+                                <td>
+                                    <%= dto.getFullname() %>
+                                </td>
+                                <td>
+                                    <input type="checkbox" name="checkAdmin"
+                                           value="ON"
+                                           <%
+                                           if (dto.isRole()) {
+                                               %>
+                                               checked="checked"
+                                           <%
+                                           }
+                                    %>
+                                    />
+                                </td>
+                                <td>
+                                    <a href="<%= urlRewriting %>">Delete</a>
+                                </td>
+                                <td>
+                                    <input type="hidden" name="lastSearchValue"
+                                           value="<%= searchValue %>" />
+                                    <input type="submit" value="Update" name="btnAction" />
+                                </td>
+                            </tr>
+                    </form>
                     <%
-                }//end if has no record
-            }//end if searchValue has a value
-        %>
+                        }
+                    %>
+                    </tbody>
+                </table>
+            <%
+            } else {
+                %>
+                <h1>No Record Found!!!</h1>
+                <%
+            }//end if has no record
+        }//end if searchValue has a value
+    %>
     </body>
 </html>
