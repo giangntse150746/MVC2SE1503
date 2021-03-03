@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import javax.naming.NamingException;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -21,12 +22,10 @@ import tblDemo.TblDemoDAO;
  *
  * @author Admin
  */
-public class LoginServlet extends HttpServlet {
-    private final String INVALID_PAGE = "invalid.html";
-//    private final String SEARCH_PAGE = "search.html";
-        //replace the html file with jsp file
-    private final String SEARCH_PAGE = "search.jsp";
+@WebServlet(name = "StartUpServlet", urlPatterns = {"/StartUpServlet"})
+public class StartUpServlet extends HttpServlet {
     private final String LOGIN_PAGE = "login.html";
+    private final String SEARCH_PAGE = "search.jsp";
     
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -38,54 +37,36 @@ public class LoginServlet extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+                throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
+        String url = LOGIN_PAGE;
         
-        String url = INVALID_PAGE;
-        String button = request.getParameter("btnAction");
-        String username = request.getParameter("txtUsername");
-        String password = request.getParameter("txtPassword");
-        String remember = request.getParameter("chkCookie");
-//        String methods = request.getMethod();
-//        String servPath = request.getServletPath();
-//        String authType = request.getAuthType();
-
         try {
-            //1. Initialize DAO.
-            TblDemoDAO dao = new TblDemoDAO();
-            boolean result = dao.checkLogin(username, password);
-            //2. Process to response the Request
-            if (result) {
-//                if (remember.equals("ON")) {
-//                    //3.1. Get the cookie's list to compare with the new one.
-//                    Cookie[] cookies = request.getCookies();
-//                    boolean isExist = false;
-//                    for (Cookie element : cookies) {
-//                        if (username.equals(element.getName())) {
-//                            isExist = true;
-//                            break;
-//                        }
-//                    }
-//                    if (!isExist) {
-//                        //3.2. Save cookie to client-side if it has changed.
-//                        Cookie cookie = new Cookie(username, password);
-//                        cookie.setMaxAge(60*3);
-//                        response.addCookie(cookie);
-//                    }
-//                }
-                Cookie cookie = new Cookie(username, password);
-                cookie.setMaxAge(60*3);
-                response.addCookie(cookie);
-                url = SEARCH_PAGE;
-            }//end if result is true.
+            //1. Check Cookies are existed.
+            Cookie[] cookies = request.getCookies();
+            
+            if (cookies != null) {
+                //2. Get username and password.
+                Cookie lastCookie = cookies[cookies.length-1];
+                String username = lastCookie.getName();
+                String password = lastCookie.getValue();
+                
+                //3. Check username and password is correct.
+                TblDemoDAO dao = new TblDemoDAO();
+                boolean result = dao.checkLogin(username, password);
+                
+                if (result) {
+                    //4. Skip LOGIN_PAGE if the username and password is matched.
+                    url = SEARCH_PAGE;
+                }
+            }//cookies have existed.
         } catch(SQLException | NamingException ex) {
             ex.printStackTrace();
-        }
-        finally {
-            response.sendRedirect(url);
+        } finally {
 //            RequestDispatcher rd = request.getRequestDispatcher(url);
 //            rd.forward(request, response);
+            response.sendRedirect(url);
             out.close();
         }
     }
@@ -101,7 +82,7 @@ public class LoginServlet extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+                throws ServletException, IOException {
         processRequest(request, response);
     }
 
@@ -115,7 +96,7 @@ public class LoginServlet extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+                throws ServletException, IOException {
         processRequest(request, response);
     }
 

@@ -7,9 +7,9 @@ package giangnt.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,16 +18,9 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author Admin
  */
-@WebServlet(name = "DispatchServlet", urlPatterns = {"/DispatchServlet"})
-    //annotation
-public class DispatchServlet extends HttpServlet {
-    private final String LOGIN_PAGE = "login.html";
-    private final String LOGIN_CONTROLLER = "/LoginServlet";
-    private final String SEARCH_CONTROLLER = "/SearchLastnameServlet";
-    private final String DELETE_ACCOUNT_CONTROLLER = "/DeleteAccountServlet";
-    private final String UPDATE_ACCOUNT_CONTROLLER = "/UpdateAccountServlet";
-    private final String STARTUP_CONTROLLER = "/StartUpServlet";
-    
+@WebServlet(name = "PrintCookieServlet", urlPatterns = {"/PrintCookieServlet"})
+public class PrintCookieServlet extends HttpServlet {
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -41,35 +34,28 @@ public class DispatchServlet extends HttpServlet {
                 throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        
-        String button = request.getParameter("btnAction");  //Ban muon an gi
-//        String reDirect = request.getParameter("chkCookie");
-        String url = LOGIN_PAGE;
-        
         try {
-            if (button == null) {
-                //Read Cookie
-                url = STARTUP_CONTROLLER;
-            } else if (button.equals("Login")) {
-                url = LOGIN_CONTROLLER;
-            } else if (button.equals("Search")) {
-                url = SEARCH_CONTROLLER;
-            } else if (button.equals("Delete")) {
-                url = DELETE_ACCOUNT_CONTROLLER;
-            } else if (button.equals("Update")) {
-                url = UPDATE_ACCOUNT_CONTROLLER;
-            }
-        }
-        finally {
-            //Using requestDispatcher to control, reDirect to an url
-            //Increase the time life of request object
-            RequestDispatcher rd = request.getRequestDispatcher(url);
-            rd.forward(request, response);
+            /* TODO output your page here. You may use following sample code. */
+            out.println("<!DOCTYPE html>");
+            out.println("<html>");
+            out.println("<head>");
+            out.println("<title>Servlet PrintCookieServlet</title>");            
+            out.println("</head>");
+            out.println("<body>");
             
+            Cookie[] c = request.getCookies();
+            for (int i = 0; i < c.length; i++) {
+                out.println("Name: " + c[i].getName());
+                out.println("Value: " + c[i].getValue());
+            }
+            
+            out.println("</body>");
+            out.println("</html>");
+        } finally {
             out.close();
         }
     }
-    
+
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.

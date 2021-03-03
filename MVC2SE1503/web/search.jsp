@@ -15,11 +15,21 @@
     </head>
     <body>
         <h2>Search Page</h2>
-        <h1>ACCESS SUCCESSFUL!!!</h1>
+        <%
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                Cookie lastCookie = cookies[cookies.length-1];
+                %>
+                    <font color="red">
+                    Welcome, <%= lastCookie.getName() %>.
+                    </font>
+                <%
+            }
+        %>
         <div id="main-area">
             <form action="DispatchServlet">
                 Search Value <input type="text" name="txtSearchValue"
-                                value="<%= request.getParameter("txtSearchValue") %>"/>
+                                value="<%= request.getParameter("txtSearchValue") == null ? "" : request.getParameter("txtSearchValue") %>"/>
                 <br/>
                 <input type="submit" value="Search" name="btnAction" />
             </form>

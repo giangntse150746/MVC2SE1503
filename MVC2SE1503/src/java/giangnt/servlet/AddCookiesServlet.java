@@ -7,26 +7,21 @@ package giangnt.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.SQLException;
-import javax.naming.NamingException;
-import javax.servlet.RequestDispatcher;
+import java.util.concurrent.TimeUnit;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import tblDemo.TblDemoDAO;
 
 /**
  *
  * @author Admin
  */
-public class LoginServlet extends HttpServlet {
-    private final String INVALID_PAGE = "invalid.html";
-//    private final String SEARCH_PAGE = "search.html";
-        //replace the html file with jsp file
-    private final String SEARCH_PAGE = "search.jsp";
-    private final String LOGIN_PAGE = "login.html";
+@WebServlet(name = "AddCookiesServlet", urlPatterns = {"/AddCookiesServlet"})
+public class AddCookiesServlet extends HttpServlet {
+    private final String PRINT_COOKIE_PAGE = "/PrintCookieServlet";
     
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -36,56 +31,43 @@ public class LoginServlet extends HttpServlet {
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
+     * @throws java.lang.InterruptedException
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+                throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
+        String url = PRINT_COOKIE_PAGE;
         
-        String url = INVALID_PAGE;
-        String button = request.getParameter("btnAction");
         String username = request.getParameter("txtUsername");
         String password = request.getParameter("txtPassword");
-        String remember = request.getParameter("chkCookie");
-//        String methods = request.getMethod();
-//        String servPath = request.getServletPath();
-//        String authType = request.getAuthType();
-
+        String isCookie = request.getParameter("txtCookie");
+        
         try {
-            //1. Initialize DAO.
-            TblDemoDAO dao = new TblDemoDAO();
-            boolean result = dao.checkLogin(username, password);
-            //2. Process to response the Request
-            if (result) {
-//                if (remember.equals("ON")) {
-//                    //3.1. Get the cookie's list to compare with the new one.
-//                    Cookie[] cookies = request.getCookies();
-//                    boolean isExist = false;
-//                    for (Cookie element : cookies) {
-//                        if (username.equals(element.getName())) {
-//                            isExist = true;
-//                            break;
-//                        }
-//                    }
-//                    if (!isExist) {
-//                        //3.2. Save cookie to client-side if it has changed.
-//                        Cookie cookie = new Cookie(username, password);
-//                        cookie.setMaxAge(60*3);
-//                        response.addCookie(cookie);
-//                    }
-//                }
-                Cookie cookie = new Cookie(username, password);
-                cookie.setMaxAge(60*3);
+            if (isCookie.equals("ON")) {
+                /* TODO output your page here. You may use following sample code. */
+                out.println("<!DOCTYPE html>");
+                out.println("<html>");
+                out.println("<head>");
+                out.println("<title>AddCookiesServlet</title>");            
+                out.println("</head>");
+                out.println("<body>");
+
+                out.println("<h1>Servlet AddCookiesServlet at " + request.getContextPath() + "</h1>");
+                TimeUnit.SECONDS.sleep(300);
+                out.println("<h1>Adding Cookie processing...</h1>");
+                TimeUnit.SECONDS.sleep(300);
+                Cookie cookie = new Cookie("userName", username);
+                cookie.setMaxAge(60*5);
                 response.addCookie(cookie);
-                url = SEARCH_PAGE;
-            }//end if result is true.
-        } catch(SQLException | NamingException ex) {
+                out.println("<a href='PrintCookieServlet'>Print Cookie</a>");
+
+                out.println("</body>");
+                out.println("</html>");
+            }
+        } catch(InterruptedException ex) {
             ex.printStackTrace();
-        }
-        finally {
-            response.sendRedirect(url);
-//            RequestDispatcher rd = request.getRequestDispatcher(url);
-//            rd.forward(request, response);
+        } finally {
             out.close();
         }
     }
@@ -101,7 +83,7 @@ public class LoginServlet extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+                throws ServletException, IOException {
         processRequest(request, response);
     }
 
@@ -115,7 +97,7 @@ public class LoginServlet extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+                throws ServletException, IOException {
         processRequest(request, response);
     }
 
