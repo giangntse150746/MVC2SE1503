@@ -32,8 +32,11 @@ public class DBHelper implements Serializable {
         /*
         //1. Load Driver(s). --> add Driver(s) into project.
         Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            >>> is driverClassName in DataSource
+        
         //2. Create Connection String to determine Container address.
         String url = "jdbc:sqlserver://localhost:1433;databaseName=DataDemoDAO";
+        
         //3. Open Connection.
         Connection con = DriverManager.getConnection(url, "sa", "123456");
         //Return Connection.

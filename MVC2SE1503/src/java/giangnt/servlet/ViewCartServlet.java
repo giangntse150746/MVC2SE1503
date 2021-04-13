@@ -5,28 +5,35 @@
  */
 package giangnt.servlet;
 
+import giangnt.tblStore.TblStoreDAO;
+import giangnt.tblStore.TblStoreDTO;
+import giangnt.utils.cartObj;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.naming.NamingException;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import giangnt.tblDemo.TblDemoDAO;
-import java.util.Map;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
+import javax.servlet.http.HttpSession;
 
 /**
  *
  * @author Admin
  */
-@WebServlet(name = "DeleteAccountServlet", urlPatterns = {"/DeleteAccountServlet"})
-public class DeleteAccountServlet extends HttpServlet {
-    private final String ERROR_PAGE = "errorPage";
-    private final String SEARCH_CONTROLLER = "searchAction";
+@WebServlet(name = "ViewCartServlet", urlPatterns = {"/ViewCartServlet"})
+public class ViewCartServlet extends HttpServlet {
+    private final String VIEW_CART_PAGE = "viewCartPageJSP";
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -46,35 +53,52 @@ public class DeleteAccountServlet extends HttpServlet {
         Map<String, String> siteMap = 
                     (Map<String, String>) sc.getAttribute("SITE_MAP");
         
-        String username = request.getParameter("pk");
-        String searchValue = request.getParameter("lastSearchValue");
-        String url = siteMap.get(ERROR_PAGE);
-        
+        String url = siteMap.get(VIEW_CART_PAGE);
+        List<TblStoreDTO> productList;
         try {
-            System.out.println("[DeleteAccountServlet] deleting...");
-            TblDemoDAO dao = new TblDemoDAO();
-            boolean result = dao.deleteAccount(username);
+            //ViewCartServlet To Generate Data from Map to List
             
-            if (result) {
-                //call Search function again
-                url = siteMap.get(SEARCH_CONTROLLER);
-                url += "?txtSearchValue=" + searchValue;
+            //1. Customer goes to Cart's place.
+              //set true because always need session.
+            HttpSession session = request.getSession();
+            
+            //2. Customer takes a cart.
+            cartObj cart = (cartObj) session.getAttribute("CURRENT_CART_HIDDEN");
+            
+            productList = (ArrayList<TblStoreDTO>)request.getAttribute("SHOW_CART");
+            if (productList == null) {
+                productList = new ArrayList<>();
+            }
+            if (cart != null) {
+                TblStoreDTO product;
+                TblStoreDAO dao = new TblStoreDAO();
                 
-                request.setAttribute("DELETE_INFO", username);
-            }//end if delete is successful
-        } catch (SQLException | NamingException ex) {
+                //3.Iterator goes through all item(s) that added.
+                for (String item : cart.getItems().keySet()) {
+                    //key is productid.
+                    String productId = item;
+                    //value is quantity
+                    int quantity = cart.getItems().get(item);
+                    product = dao.getProductData(productId, quantity);
+                    if (product != null) {
+                        productList.add(product);
+                    }
+                }
+                request.setAttribute("SHOW_CART", productList);
+            } else {
+                System.out.println("[ViewCartServlet]Bủh Bủh Dảk Dảk Lmao Lmao");
+            }
+        } catch (NamingException | SQLException ex) {
             response.sendError(500);
+            Logger.getLogger(ViewCartServlet.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
-            // nếu dùng dispatcher sẽ trùng tên parameter truyền về -> tạo mảng
-            //ko theo thứ tự nên không biết server sẽ lấy cái nào
-            //>>>Không dùng dispatcher cho trường hợp này
-//            response.sendRedirect(url);
             RequestDispatcher rd = request.getRequestDispatcher(url);
             rd.forward(request, response);
+            
             out.close();
         }
     }
-    
+
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.

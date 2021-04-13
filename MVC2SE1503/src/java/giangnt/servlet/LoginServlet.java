@@ -5,28 +5,31 @@
  */
 package giangnt.servlet;
 
+import giangnt.tblDemo.TblDemoCreateError;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import javax.naming.NamingException;
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import tblDemo.TblDemoDAO;
+import javax.servlet.http.HttpSession;
+import giangnt.tblDemo.TblDemoDAO;
+import giangnt.tblDemo.TblDemoDTO;
+import java.util.Map;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
 
 /**
  *
  * @author Admin
  */
 public class LoginServlet extends HttpServlet {
-    private final String INVALID_PAGE = "invalid.html";
-//    private final String SEARCH_PAGE = "search.html";
-        //replace the html file with jsp file
-    private final String SEARCH_PAGE = "search.jsp";
-    private final String LOGIN_PAGE = "login.html";
+    private final String INVALID_LOGIN_PAGE = "loginPageJSP";
+    private final String SEARCH_PAGE = "searchPageJSP";
+    private final String LOAD_STORE_CONTROLLER = "loadStoreAction";
     
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -41,51 +44,56 @@ public class LoginServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
+        //get Servlet Context to use ContextListener
+        ServletContext sc = request.getServletContext();
+        //get the siteMap
+        Map<String, String> siteMap = 
+                    (Map<String, String>) sc.getAttribute("SITE_MAP");
         
-        String url = INVALID_PAGE;
-        String button = request.getParameter("btnAction");
+        String url = siteMap.get(INVALID_LOGIN_PAGE);
         String username = request.getParameter("txtUsername");
         String password = request.getParameter("txtPassword");
         String remember = request.getParameter("chkCookie");
-//        String methods = request.getMethod();
-//        String servPath = request.getServletPath();
-//        String authType = request.getAuthType();
+        
+        TblDemoDTO result;
+        TblDemoCreateError errors = new TblDemoCreateError();
 
         try {
             //1. Initialize DAO.
             TblDemoDAO dao = new TblDemoDAO();
-            boolean result = dao.checkLogin(username, password);
+            result = dao.checkLogin(username, password);
             //2. Process to response the Request
-            if (result) {
-//                if (remember.equals("ON")) {
-//                    //3.1. Get the cookie's list to compare with the new one.
-//                    Cookie[] cookies = request.getCookies();
-//                    boolean isExist = false;
-//                    for (Cookie element : cookies) {
-//                        if (username.equals(element.getName())) {
-//                            isExist = true;
-//                            break;
-//                        }
-//                    }
-//                    if (!isExist) {
-//                        //3.2. Save cookie to client-side if it has changed.
-//                        Cookie cookie = new Cookie(username, password);
-//                        cookie.setMaxAge(60*3);
-//                        response.addCookie(cookie);
-//                    }
-//                }
-                Cookie cookie = new Cookie(username, password);
-                cookie.setMaxAge(60*3);
-                response.addCookie(cookie);
-                url = SEARCH_PAGE;
-            }//end if result is true.
+            if (result != null) {
+                if (remember != null) {
+                    Cookie cookie = new Cookie(username, password);
+                    cookie.setMaxAge(60*3);
+                    response.addCookie(cookie);
+                    System.out.println("[LoginServlet] cookie(s) saved.");
+                }
+                //3. set attribute current user info.
+                HttpSession session = request.getSession();
+                session.setAttribute("CURRENT_USER", result);
+                
+                //4. Check if user is admin or customer
+                if (result.isRole()) {
+                    url = siteMap.get(SEARCH_PAGE);
+                } else {
+                    url = siteMap.get(LOAD_STORE_CONTROLLER);
+                }
+            }//end if result is returned fullname.
+            else {
+                //if there is an invalid username/password, printout it.
+                errors.setLoginInfoNotMatch("Username or Password is incorrect.");
+                request.setAttribute("CREATE_ERROR", errors);
+            }
         } catch(SQLException | NamingException ex) {
-            ex.printStackTrace();
+            log(ex.getLocalizedMessage());
+            response.sendError(500);
         }
         finally {
-            response.sendRedirect(url);
-//            RequestDispatcher rd = request.getRequestDispatcher(url);
-//            rd.forward(request, response);
+            RequestDispatcher rd = request.getRequestDispatcher(url);
+            rd.forward(request, response);
+//            response.sendRedirect(url);
             out.close();
         }
     }

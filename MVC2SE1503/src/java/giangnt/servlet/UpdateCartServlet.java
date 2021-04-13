@@ -5,28 +5,29 @@
  */
 package giangnt.servlet;
 
+import giangnt.utils.cartObj;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.SQLException;
-import javax.naming.NamingException;
+import java.util.Map;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import giangnt.tblDemo.TblDemoDAO;
-import java.util.Map;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
+import javax.servlet.http.HttpSession;
 
 /**
  *
  * @author Admin
  */
-@WebServlet(name = "DeleteAccountServlet", urlPatterns = {"/DeleteAccountServlet"})
-public class DeleteAccountServlet extends HttpServlet {
-    private final String ERROR_PAGE = "errorPage";
-    private final String SEARCH_CONTROLLER = "searchAction";
+@WebServlet(name = "UpdateCartServlet", urlPatterns = {"/UpdateCartServlet"})
+public class UpdateCartServlet extends HttpServlet {
+    private final String VIEW_CART_CONTROLLER = "viewCartAction";
+    private final String CHECK_OUT_CONTROLLER = "checkOutAction";
+    private final String REMOVE_ITEM_CONTROLLER = "removeItemAction";
+    private final String UPDATE_ITEM_CONTROLLER = "updateItemAction";
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -46,35 +47,32 @@ public class DeleteAccountServlet extends HttpServlet {
         Map<String, String> siteMap = 
                     (Map<String, String>) sc.getAttribute("SITE_MAP");
         
-        String username = request.getParameter("pk");
-        String searchValue = request.getParameter("lastSearchValue");
-        String url = siteMap.get(ERROR_PAGE);
+        String url = siteMap.get(VIEW_CART_CONTROLLER);
+        String button = request.getParameter("btnAction");
         
         try {
-            System.out.println("[DeleteAccountServlet] deleting...");
-            TblDemoDAO dao = new TblDemoDAO();
-            boolean result = dao.deleteAccount(username);
-            
-            if (result) {
-                //call Search function again
-                url = siteMap.get(SEARCH_CONTROLLER);
-                url += "?txtSearchValue=" + searchValue;
-                
-                request.setAttribute("DELETE_INFO", username);
-            }//end if delete is successful
-        } catch (SQLException | NamingException ex) {
-            response.sendError(500);
+            switch (button) {
+                case "Update":
+                    System.out.println("[UpdateCartServlet] redirecting to [UpdateItemServlet].");
+                    url = siteMap.get(UPDATE_ITEM_CONTROLLER);
+                    break;
+                case "Check Out Selected Item(s)":
+                    System.out.println("[UpdateCartServlet] redirecting to [CheckOutServlet].");
+                    url = siteMap.get(CHECK_OUT_CONTROLLER);
+                    break;
+                case "Remove Selected Item(s)":
+                    System.out.println("[UpdateCartServlet] redirecting to [RemoveItemServlet].");
+                    url = siteMap.get(REMOVE_ITEM_CONTROLLER);
+                    break;
+            }
         } finally {
-            // nếu dùng dispatcher sẽ trùng tên parameter truyền về -> tạo mảng
-            //ko theo thứ tự nên không biết server sẽ lấy cái nào
-            //>>>Không dùng dispatcher cho trường hợp này
-//            response.sendRedirect(url);
             RequestDispatcher rd = request.getRequestDispatcher(url);
             rd.forward(request, response);
+            
             out.close();
         }
     }
-    
+
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.

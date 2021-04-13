@@ -8,25 +8,29 @@ package giangnt.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.List;
 import javax.naming.NamingException;
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import giangnt.tblDemo.TblDemoDAO;
+import giangnt.tblDemo.TblDemoDTO;
 import java.util.Map;
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
 
 /**
  *
  * @author Admin
  */
-@WebServlet(name = "DeleteAccountServlet", urlPatterns = {"/DeleteAccountServlet"})
-public class DeleteAccountServlet extends HttpServlet {
-    private final String ERROR_PAGE = "errorPage";
-    private final String SEARCH_CONTROLLER = "searchAction";
+@WebServlet(name = "SearchLastnameServlet", urlPatterns = {"/SearchLastnameServlet"})
+public class SearchServlet extends HttpServlet {
+//    private final String SEARCH_PAGE = "search.html";
+    private final String SEARCH_PAGE = "searchPageJSP";
+    private final String SEARCH_PAGE_RESULT = "searchPageJSP";
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -46,31 +50,32 @@ public class DeleteAccountServlet extends HttpServlet {
         Map<String, String> siteMap = 
                     (Map<String, String>) sc.getAttribute("SITE_MAP");
         
-        String username = request.getParameter("pk");
-        String searchValue = request.getParameter("lastSearchValue");
-        String url = siteMap.get(ERROR_PAGE);
+        String searchValue = request.getParameter("txtSearchValue");
+        String url = siteMap.get(SEARCH_PAGE);
         
         try {
-            System.out.println("[DeleteAccountServlet] deleting...");
-            TblDemoDAO dao = new TblDemoDAO();
-            boolean result = dao.deleteAccount(username);
-            
-            if (result) {
-                //call Search function again
-                url = siteMap.get(SEARCH_CONTROLLER);
-                url += "?txtSearchValue=" + searchValue;
+            //Check if search value is not an empty string
+            if (searchValue.trim().length() > 0) {
+                //1. Initialize DAO
+                TblDemoDAO dao = new TblDemoDAO();
+                dao.searchLastname(searchValue);
                 
-                request.setAttribute("DELETE_INFO", username);
-            }//end if delete is successful
+                List<TblDemoDTO> result = dao.getAccountList();
+                
+                //Send to SEARCH_RESULT_PAGE
+                request.setAttribute("SEARCH_RESULT", result);
+                System.out.println("[SearchServlet] search result received.");
+                url = siteMap.get(SEARCH_PAGE_RESULT);
+                request.setAttribute("lastSearchValue", searchValue);
+            }
         } catch (SQLException | NamingException ex) {
-            response.sendError(500);
-        } finally {
-            // nếu dùng dispatcher sẽ trùng tên parameter truyền về -> tạo mảng
-            //ko theo thứ tự nên không biết server sẽ lấy cái nào
-            //>>>Không dùng dispatcher cho trường hợp này
-//            response.sendRedirect(url);
+            response.sendError(502); //many Connection
+        }
+        finally {
+            //Qua trang khác nên phải giữ request object để trả về.
             RequestDispatcher rd = request.getRequestDispatcher(url);
             rd.forward(request, response);
+            
             out.close();
         }
     }

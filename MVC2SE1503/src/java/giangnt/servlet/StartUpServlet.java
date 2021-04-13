@@ -16,7 +16,11 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import tblDemo.TblDemoDAO;
+import javax.servlet.http.HttpSession;
+import giangnt.tblDemo.TblDemoDAO;
+import giangnt.tblDemo.TblDemoDTO;
+import java.util.Map;
+import javax.servlet.ServletContext;
 
 /**
  *
@@ -24,8 +28,10 @@ import tblDemo.TblDemoDAO;
  */
 @WebServlet(name = "StartUpServlet", urlPatterns = {"/StartUpServlet"})
 public class StartUpServlet extends HttpServlet {
-    private final String LOGIN_PAGE = "login.html";
-    private final String SEARCH_PAGE = "search.jsp";
+    private final String LOGIN_PAGE = "loginPage";
+    private final String SEARCH_PAGE = "searchPageJSP";
+    private final String LOAD_STORE_CONTROLLER = "loadStoreAction";
+    
     
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -40,13 +46,22 @@ public class StartUpServlet extends HttpServlet {
                 throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        String url = LOGIN_PAGE;
+        //get Servlet Context to use ContextListener
+        ServletContext sc = request.getServletContext();
+        //get the siteMap
+        Map<String, String> siteMap = 
+                    (Map<String, String>) sc.getAttribute("SITE_MAP");
+        
+        String url = siteMap.get(LOGIN_PAGE);
         
         try {
+            System.out.println("[StartUpServlet] starting up.");
             //1. Check Cookies are existed.
             Cookie[] cookies = request.getCookies();
+            HttpSession session = request.getSession();
             
             if (cookies != null) {
+                System.out.println("[StartUpServlet] cookie found.");
                 //2. Get username and password.
                 Cookie lastCookie = cookies[cookies.length-1];
                 String username = lastCookie.getName();
@@ -54,19 +69,37 @@ public class StartUpServlet extends HttpServlet {
                 
                 //3. Check username and password is correct.
                 TblDemoDAO dao = new TblDemoDAO();
-                boolean result = dao.checkLogin(username, password);
+                TblDemoDTO result = dao.checkLogin(username, password);
                 
-                if (result) {
+                if (result != null) {
                     //4. Skip LOGIN_PAGE if the username and password is matched.
-                    url = SEARCH_PAGE;
+                    session = request.getSession();
+                    session.setAttribute("CURRENT_USER", result);
+                    System.out.println("[StartUpServlet] user session found.");
+                    //4. Check if user is admin or customer
+                    if (result.isRole()) {
+                        url = siteMap.get(SEARCH_PAGE);
+                    } else {
+                        url = siteMap.get(LOAD_STORE_CONTROLLER);
+                    }
+                    
+                    RequestDispatcher rd = request.getRequestDispatcher(url);
+                    rd.forward(request, response);
+                } else {
+                    session.invalidate();
+                    System.out.println("[StartUpServlet] user session found"
+                                     + " but WRONG_INFO_RELEASE.");
+                    response.sendRedirect(url);
                 }
             }//cookies have existed.
+            else {
+                session.invalidate();
+                System.out.println("[StartUpServlet] NO cookie found.");
+                response.sendRedirect(url);
+            }
         } catch(SQLException | NamingException ex) {
             ex.printStackTrace();
         } finally {
-//            RequestDispatcher rd = request.getRequestDispatcher(url);
-//            rd.forward(request, response);
-            response.sendRedirect(url);
             out.close();
         }
     }
